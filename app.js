@@ -8,7 +8,9 @@ import xss from "xss-clean";
 import limiter from "./src/config/limiter.js";
 import router from "./src/routes/api.js";
 
+// Express Initialize
 const app = new express();
+app.use(express.json());
 
 // Security Middleware
 app.use(cors());
