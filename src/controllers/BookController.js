@@ -1,31 +1,27 @@
-import Book from "../models/Book";
+import Book from "../models/Book.js";
 
 /**
  * Retrieve all books
  */
 export async function getAllBooks(req, res) {
-  const id = req.params.id;
-  if (!id) {
-    const allBooks = await Book.find({});
-    return res.status(200).json(allBooks);
-  }
-
-  const book = await Book.find({ _id: id });
-  return res.status(200).json(book);
+  const allBooks = await Book.find();
+  return res.status(200).json({
+    status: "success",
+    total: allBooks?.length,
+    data: allBooks,
+  });
 }
 
 /**
  * Retrieve a specific book by ID
  */
 export async function getSingleBook(req, res) {
-  const id = req.params.id;
-  if (!id) {
-    const allBooks = await Book.find({});
-    return res.status(200).json(allBooks);
-  }
-
-  const book = await Book.find({ _id: id });
-  return res.status(200).json(book);
+  const _id = req.params.id;
+  const book = await Book.find({ _id });
+  return res.status(200).json({
+    status: "success",
+    data: book,
+  });
 }
 
 /**
@@ -35,11 +31,20 @@ export function storeBook(req, res) {
   const myBook = new Book(req.body);
   myBook
     .save()
-    .then(() => {
-      res.status(200).send("Successfully Inserted!");
+    .then((data) => {
+      res.status(200).send({
+        status: "success",
+        data,
+      });
     })
     .catch((err) => {
-      res.status(404).send("Something went wrong!");
+      console.log(err?.errors?.title?.message);
+      res.status(404).send({
+        status: "failed",
+        data: {
+          error: err?.errors?.title,
+        },
+      });
     });
 }
 
@@ -47,13 +52,26 @@ export function storeBook(req, res) {
  * Update a book by ID
  */
 export function updateBook(req, res) {
-  const id = req.params.id;
-  Book.updateOne({ _id: id }, { $set: req.body })
-    .then(() => {
-      res.status(200).send("Successfully Updated!");
+  const _id = req.params.id;
+  Book.findOneAndUpdate(
+    { _id },
+    { $set: req.body },
+    { returnDocument: "after" }
+  )
+    .then((data) => {
+      res.status(200).send({
+        status: "success",
+        data,
+      });
     })
     .catch((err) => {
-      res.status(404).send("Something went wrong!");
+      const error = JSON.parse(JSON.stringify(err));
+      res.status(404).send({
+        status: "failed",
+        data: {
+          error,
+        },
+      });
     });
 }
 
@@ -61,9 +79,29 @@ export function updateBook(req, res) {
  * Delete a book by ID
  */
 export function deleteBook(req, res) {
-  const id = req.params.id;
-
-  Book.deleteOne({ _id: id })
-    .then(() => res.send("Successfully Deleted"))
-    .catch(() => res.send("Something wrong Happed"));
+  const _id = req.params.id;
+  Book.deleteOne({ _id })
+    .then((data) => {
+      const { acknowledged } = data;
+      if (acknowledged) {
+        res.status(200).send({
+          status: "success",
+          data: "Data Deleted Successfully",
+        });
+      } else {
+        res.status(200).send({
+          status: "failed",
+          data: "Something Went Wrong",
+        });
+      }
+    })
+    .catch((err) => {
+      const error = JSON.parse(JSON.stringify(err));
+      res.status(404).send({
+        status: "failed",
+        data: {
+          error,
+        },
+      });
+    });
 }

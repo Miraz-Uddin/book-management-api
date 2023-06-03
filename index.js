@@ -12,11 +12,12 @@ const database = process.env.DB_URL;
 
 mongoose
   .connect(database)
-  .then(() => console.log("Connected!"))
-  .catch(() => {
-    console.log("Error While Connected!");
+  .then(() => console.log("Database Connected"))
+  .catch((e) => {
+    console.log("Error While Connecting Database !!!");
+    console.log(e);
   });
 
 app.listen(port, () => {
-  console.log(`Express Server Connected on Port: ${port}`);
+  console.log(`Express Server Connected on: ${port}`);
 });
